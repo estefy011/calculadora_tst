@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.4.2
+
 jobs:
   build:
     docker:
@@ -48,6 +51,7 @@ jobs:
           command: echo "Deploying Application..."
 
 workflows:
+  version: 2
   build_test_deploy:
     jobs:
       - build
@@ -67,6 +71,7 @@ workflows:
 
   code_quality:
     jobs:
+      - build
       - code_analysis:
           requires:
             - build
@@ -76,9 +81,6 @@ workflows:
       - deploy
       - code_analysis
     when: always  # This allows the job to run regardless of the success or failure of the workflow.
-
-orbs:
-  slack: circleci/slack@4.4.2
 
 notify:
   slack/notify:
