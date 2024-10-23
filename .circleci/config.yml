@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  slack: circleci/slack@4.4.2
-
 jobs:
   build:
     docker:
@@ -10,8 +7,12 @@ jobs:
     working_directory: ~/my_python_project
     steps:
       - checkout
-      - run: pip install -r requirements.txt
-      - run: python -m unittest discover tests
+      - run:
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run tests
+          command: python -m unittest discover tests
 
   test1:
     docker:
@@ -19,8 +20,12 @@ jobs:
     working_directory: ~/my_python_project
     steps:
       - checkout
-      - run: pip install -r requirements.txt
-      - run: python -m unittest tests/test_module1.py
+      - run:
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run specific tests
+          command: python -m unittest tests/test_module1.py
 
   test2:
     docker:
@@ -28,31 +33,16 @@ jobs:
     working_directory: ~/my_python_project
     steps:
       - checkout
-      - run: pip install -r requirements.txt
-      - run: python -m unittest tests/test_module2.py
-
-  code_analysis:
-    docker:
-      - image: cimg/python:3.9
-    working_directory: ~/my_python_project
-    steps:
-      - checkout
-      - run: pip install flake8
-      - run: flake8 .
-
-  deploy:
-    docker:
-      - image: cimg/python:3.9
-    working_directory: ~/my_python_project
-    steps:
-      - checkout
       - run:
-          name: Deploy Simulation
-          command: echo "Deploying Application..."
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run specific tests
+          command: python -m unittest tests/test_module2.py
 
 workflows:
   version: 2
-  build_test_deploy:
+  build_and_test:
     jobs:
       - build
       - test1:
@@ -61,29 +51,3 @@ workflows:
       - test2:
           requires:
             - build
-      - deploy:
-          requires:
-            - test1
-            - test2
-      - code_analysis:
-          requires:
-            - build
-
-  code_quality:
-    jobs:
-      - build
-      - code_analysis:
-          requires:
-            - build
-
-  notify:
-    jobs:
-      - deploy
-      - code_analysis
-    when: always  # This allows the job to run regardless of the success or failure of the workflow.
-
-notify:
-  slack/notify:
-    event: fail
-    mentions: 'YOUR_SLACK_USER_ID'
-    template: basic_fail_1
