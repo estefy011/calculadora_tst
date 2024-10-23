@@ -3,36 +3,63 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/python:3.10.8  # Versión actualizada a una que existe
-    working_directory: ~/repo
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover tests
+
+  test1:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run: pip install -r requirements.txt
+      - run: python -m unittest tests/test_module1.py
+
+  test2:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run: pip install -r requirements.txt
+      - run: python -m unittest tests/test_module2.py
+
+  code_quality:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run: pip install flake8
+      - run: flake8 .
+
+  deploy:
+    docker:
+      - image: cimg/python:3.9
     steps:
       - checkout
       - run:
-          name: Set up Python environment
-          command: |
-            python -m venv venv
-            . venv/bin/activate
-      - run:
-          name: Install dependencies
-          command: |
-            pip install -r requirements.txt
-      - run:
-          name: Install Flake8 specific version
-          command: |
-            pip install flake8==7.1.1 mccabe==0.7.0 pycodestyle==2.12.1 pyflakes==3.2.0
-      - run:
-          name: Check Flake8 version
-          command: flake8 --version
-      - run:
-          name: Run Flake8
-          command: flake8 ./tests
-      - run:
-          name: Run tests
-          command: |
-            python -m unittest discover -s tests
+          name: Deploy Simulation
+          command: echo "Deploying Application..."
 
 workflows:
-  version: 2
   build_and_test:
     jobs:
       - build
+      - test1:
+          requires:
+            - build
+      - test2:
+          requires:
+            - build
+
+  quality_and_deploy:
+    jobs:
+      - code_quality
+      - deploy:
+          requires:
+            - code_quality
