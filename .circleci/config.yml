@@ -10,8 +10,8 @@ jobs:
       - run:
           name: Setup environment
           command: |
-            echo "Setting up environment variables and pre-requisites."
-            pip install -U pip
+            echo "Installing necessary tools."
+            pip install -U pip setuptools wheel
 
   build:
     docker:
@@ -23,8 +23,8 @@ jobs:
           name: Install dependencies
           command: pip install -r requirements.txt
       - run:
-          name: Run tests
-          command: python -m unittest discover tests
+          name: Run linting
+          command: flake8 .
 
   test1:
     docker:
@@ -50,6 +50,19 @@ jobs:
             pip install -r requirements.txt
             python -m unittest tests/test_module2.py
 
+  deploy:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run:
+          name: Deploy Application
+          command: |
+            echo "Deploying application to production server."
+            # Aquí puedes añadir el script de despliegue real, por ejemplo:
+            # scp files your_production_server:/path/to/deploy
+
   cleanup:
     docker:
       - image: cimg/python:3.9
@@ -59,17 +72,8 @@ jobs:
       - run:
           name: Cleanup resources
           command: |
-            echo "Cleaning up resources and temporary files."
-
-  deploy:
-    docker:
-      - image: cimg/python:3.9
-    working_directory: ~/my_python_project
-    steps:
-      - checkout
-      - run:
-          name: Deploy Simulation
-          command: echo "Deploying Application..."
+            echo "Removing temporary files."
+            rm -rf temp/
 
 workflows:
   version: 2
