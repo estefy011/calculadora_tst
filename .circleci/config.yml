@@ -69,7 +69,7 @@ workflows:
                 on_success: true
                 on_fail: true
                 channel: '$SLACK_DEFAULT_CHANNEL'
-                message: 'Cleanup completed with status: << pipeline.result >>'
+                message: 'Cleanup completed on branch << pipeline.git.branch >>'
       - deploy:
           requires:
             - build_and_test
@@ -78,4 +78,4 @@ workflows:
                 on_success: true
                 on_fail: true
                 channel: '$SLACK_DEFAULT_CHANNEL'
-                message: 'Deployment completed with status: << pipeline.result >>'
+                message: 'Deployment completed on branch << pipeline.git.branch >>'
