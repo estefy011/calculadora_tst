@@ -11,9 +11,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Setup environment
+          name: Configuración del entorno
           command: |
-            echo "Setting up environment variables and pre-requisites."
+            echo "Configurando variables de entorno y pre-requisitos."
             pip install -U pip
 
   build_and_test:
@@ -24,28 +24,19 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Instalación de dependencias
           command: pip install -r requirements.txt
       - run:
-          name: Run tests in parallel
+          name: Ejecución de pruebas en paralelo
           command: |
             circleci tests glob "tests/**/*.py" | circleci tests split --split-by=timings
             python -m unittest
-
-  cleanup:
-    docker:
-      - image: cimg/python:3.9
-    working_directory: ~/my_python_project
-    steps:
-      - checkout
-      - run:
-          name: Cleanup resources
-          command: |
-            echo "Cleaning up resources and temporary files."
       - slack/notify:
+          event: always
+          channel: '$SLACK_DEFAULT_CHANNEL'
           custom: |
             {
-              "text": "Cleanup job completed on branch << pipeline.git.branch >>. Check the details on CircleCI!"
+              "text": "Pruebas completadas en el branch: << pipeline.git.branch >>. Revisa los resultados en CircleCI."
             }
 
   deploy:
@@ -55,12 +46,32 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Deploy Simulation
-          command: echo "Deploying Application..."
+          name: Simulación de despliegue
+          command: echo "Desplegando la aplicación..."
       - slack/notify:
+          event: always
+          channel: '$SLACK_DEFAULT_CHANNEL'
           custom: |
             {
-              "text": "Deployment completed successfully on branch << pipeline.git.branch >>. Ready for production!"
+              "text": "Despliegue simulado completado en el branch: << pipeline.git.branch >>."
+            }
+
+  cleanup:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run:
+          name: Limpieza de recursos
+          command: |
+            echo "Limpiando recursos y archivos temporales."
+      - slack/notify:
+          event: fail
+          channel: '$SLACK_DEFAULT_CHANNEL'
+          custom: |
+            {
+              "text": "Error durante la limpieza de recursos en el branch: << pipeline.git.branch >>. Requiere revisión!"
             }
 
 workflows:
