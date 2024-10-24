@@ -42,6 +42,10 @@ jobs:
           name: Cleanup resources
           command: |
             echo "Cleaning up resources and temporary files."
+      - slack/notify:
+          event: always
+          channel: '$SLACK_DEFAULT_CHANNEL'
+          template: basic_success_1
 
   deploy:
     docker:
@@ -52,6 +56,10 @@ jobs:
       - run:
           name: Deploy Simulation
           command: echo "Deploying Application..."
+      - slack/notify:
+          event: always
+          channel: '$SLACK_DEFAULT_CHANNEL'
+          template: basic_success_1
 
 workflows:
   version: 2
@@ -64,18 +72,6 @@ workflows:
       - cleanup:
           requires:
             - build_and_test
-          post-steps:
-            - slack/notify:
-                on_success: true
-                on_fail: true
-                channel: '$SLACK_DEFAULT_CHANNEL'
-                message: 'Cleanup completed on branch << pipeline.git.branch >>'
       - deploy:
           requires:
             - build_and_test
-          post-steps:
-            - slack/notify:
-                on_success: true
-                on_fail: true
-                channel: '$SLACK_DEFAULT_CHANNEL'
-                message: 'Deployment completed on branch << pipeline.git.branch >>'
