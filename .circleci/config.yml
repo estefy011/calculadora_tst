@@ -1,6 +1,61 @@
+version: 2.1
+
+orbs:
+  slack: circleci/slack@4.4.2
+
+jobs:
+  setup:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run:
+          name: Setup environment
+          command: |
+            echo "Setting up environment variables and pre-requisites."
+            pip install -U pip
+
+  build_and_test:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    parallelism: 4
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run tests in parallel
+          command: |
+            circleci tests glob "tests/**/*.py" | circleci tests split --split-by=timings
+            python -m unittest
+
+  cleanup:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run:
+          name: Cleanup resources
+          command: |
+            echo "Cleaning up resources and temporary files."
+
+  deploy:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/my_python_project
+    steps:
+      - checkout
+      - run:
+          name: Deploy Simulation
+          command: echo "Deploying Application..."
+
 workflows:
   version: 2
-  build_test_workflow:
+  build_test_deploy:
     jobs:
       - setup
       - build_and_test:
@@ -13,21 +68,14 @@ workflows:
             - slack/notify:
                 on_success: true
                 on_fail: true
-                channel: '#your-channel-id'
+                channel: '$SLACK_DEFAULT_CHANNEL'
                 message: 'Cleanup completed with status: << pipeline.result >>'
-
-  deploy_workflow:
-    jobs:
-      - setup
       - deploy:
           requires:
-            - setup
+            - build_and_test
           post-steps:
             - slack/notify:
                 on_success: true
                 on_fail: true
-                channel: '#your-channel-id'
+                channel: '$SLACK_DEFAULT_CHANNEL'
                 message: 'Deployment completed with status: << pipeline.result >>'
-      - cleanup:
-          requires:
-            - deploy
