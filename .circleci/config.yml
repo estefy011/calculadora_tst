@@ -60,7 +60,7 @@ jobs:
       - slack/notify:
           custom: |
             {
-              "text": "Deployment job completed successfully on branch << pipeline.git.branch >>. Ready for production!"
+              "text": "Deployment completed successfully on branch << pipeline.git.branch >>. Ready for production!"
             }
 
 workflows:
