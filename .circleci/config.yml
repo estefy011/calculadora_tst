@@ -43,9 +43,10 @@ jobs:
           command: |
             echo "Cleaning up resources and temporary files."
       - slack/notify:
-          event: always
-          channel: '$SLACK_DEFAULT_CHANNEL'
-          template: basic_success_1
+          custom: |
+            {
+              "text": "Cleanup job completed on branch << pipeline.git.branch >>. Check the details on CircleCI!"
+            }
 
   deploy:
     docker:
@@ -57,9 +58,10 @@ jobs:
           name: Deploy Simulation
           command: echo "Deploying Application..."
       - slack/notify:
-          event: always
-          channel: '$SLACK_DEFAULT_CHANNEL'
-          template: basic_success_1
+          custom: |
+            {
+              "text": "Deployment job completed successfully on branch << pipeline.git.branch >>. Ready for production!"
+            }
 
 workflows:
   version: 2
